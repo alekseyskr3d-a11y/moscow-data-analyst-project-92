@@ -1,13 +1,11 @@
 --общее число покупателей
-
-SELECT COUNT (*) AS customers_count
-FROM customers c ;
+SELECT COUNT(*) AS customers_count
+FROM customers;
 
 --топ 10 продавцов
-
-SELECT concat(e.first_name, ' ', e.last_name) AS seller,
-       count(s.sales_id) AS operations,
-       floor(sum(p.price * s.quantity)) AS income
+SELECT CONCAT(e.first_name, ' ', e.last_name) AS seller,
+       COUNT(s.sales_id) AS operations,
+       FLOOR(SUM(p.price * s.quantity)) AS income
 FROM sales s
 JOIN employees e ON s.sales_person_id = e.employee_id
 JOIN products p ON s.product_id = p.product_id
@@ -18,47 +16,43 @@ ORDER BY income DESC
 LIMIT 10;
 
 --продавцы с выручкой ниже средней
-
-SELECT concat(e.first_name, ' ', e.last_name) AS seller,
-       floor(avg(p.price * s.quantity)) AS average_income
+SELECT CONCAT(e.first_name, ' ', e.last_name) AS seller,
+       FLOOR(AVG(p.price * s.quantity)) AS average_income
 FROM sales s
 JOIN employees e ON s.sales_person_id = e.employee_id
 JOIN products p ON s.product_id = p.product_id
 GROUP BY e.employee_id,
          e.first_name,
          e.last_name
-HAVING floor(avg(p.price * s.quantity)) <
+HAVING FLOOR(AVG(p.price * s.quantity)) <
   (SELECT FLOOR(AVG(s2.quantity * p2.price))
    FROM sales s2
    JOIN products p2 ON s2.product_id = p2.product_id)
-ORDER BY average_income ;
+ORDER BY average_income;
 
 --выручка по дням недели
-
 SELECT seller,
        day_of_week,
        income
 FROM
-  (SELECT e.first_name ' ' e.last_name AS seller,
-                           CASE EXTRACT(DOW
-                                        FROM s.sale_date)
-                               WHEN 0 THEN 'sunday'
-                               WHEN 1 THEN 'monday'
-                               WHEN 2 THEN 'tuesday'
-                               WHEN 3 THEN 'wednesday'
-                               WHEN 4 THEN 'thursday'
-                               WHEN 5 THEN 'friday'
-                               WHEN 6 THEN 'saturday'
-                           END AS day_of_week,
-                           FLOOR(SUM(s.quantity * p.price)) AS income
+  (SELECT e.first_name || ' ' || e.last_name AS seller,
+          CASE EXTRACT(DOW FROM s.sale_date)
+              WHEN 0 THEN 'sunday'
+              WHEN 1 THEN 'monday'
+              WHEN 2 THEN 'tuesday'
+              WHEN 3 THEN 'wednesday'
+              WHEN 4 THEN 'thursday'
+              WHEN 5 THEN 'friday'
+              WHEN 6 THEN 'saturday'
+          END AS day_of_week,
+          FLOOR(SUM(s.quantity * p.price)) AS income
    FROM sales s
    JOIN employees e ON s.sales_person_id = e.employee_id
    JOIN products p ON s.product_id = p.product_id
    GROUP BY e.employee_id,
             e.first_name,
             e.last_name,
-            EXTRACT(DOW
-                    FROM s.sale_date)) AS subquery
+            EXTRACT(DOW FROM s.sale_date)) AS subquery
 ORDER BY seller,
          CASE day_of_week
              WHEN 'monday' THEN 1
@@ -71,7 +65,6 @@ ORDER BY seller,
          END;
 
 --покупатели по разным возраснтым группам
-
 SELECT CASE
            WHEN age BETWEEN 16 AND 25 THEN '16-25'
            WHEN age BETWEEN 26 AND 40 THEN '26-40'
@@ -83,7 +76,6 @@ GROUP BY age_category
 ORDER BY age_category;
 
 --число покупателей в месяц
-
 SELECT TO_CHAR(s.sale_date, 'YYYY-MM') AS selling_month,
        COUNT(DISTINCT s.customer_id) AS total_customers,
        FLOOR(SUM(s.quantity * p.price)) AS income
@@ -93,7 +85,6 @@ GROUP BY TO_CHAR(s.sale_date, 'YYYY-MM')
 ORDER BY selling_month;
 
 --покупатели с первой покупкой по акции
-
 WITH first_purchases AS
   (SELECT customer_id,
           MIN(sale_date) AS first_sale_date
@@ -116,7 +107,3 @@ FROM first_purchase_details fpd
 JOIN customers c ON fpd.customer_id = c.customer_id
 JOIN employees e ON fpd.sales_person_id = e.employee_id
 ORDER BY c.customer_id;
-
-
-
-

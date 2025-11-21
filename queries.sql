@@ -120,6 +120,7 @@ WITH first_purchases AS (
     GROUP BY
         customer_id
 ),
+
 first_purchase_details AS (
     SELECT DISTINCT ON (first_purchases.customer_id)
         first_purchases.customer_id,
@@ -128,8 +129,10 @@ first_purchase_details AS (
         sales.sales_id
     FROM first_purchases
     INNER JOIN sales
-        ON first_purchases.customer_id = sales.customer_id
-        AND first_purchases.first_sale_date = sales.sale_date
+        ON
+            first_purchases.customer_id = sales.customer_id
+        AND 
+            first_purchases.first_sale_date = sales.sale_date
     INNER JOIN products
         ON sales.product_id = products.product_id
     WHERE products.price = 0

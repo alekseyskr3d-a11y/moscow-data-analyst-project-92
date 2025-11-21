@@ -11,10 +11,12 @@ select
     floor(sum(products.price * sales.quantity)) as income
 from
     sales
-inner join employees on
-    sales.sales_person_id = employees.employee_id
-inner join products on
-    sales.product_id = products.product_id
+inner join
+    employees
+    on sales.sales_person_id = employees.employee_id
+inner join
+    products
+    on sales.product_id = products.product_id
 group by
     employees.employee_id,
     employees.first_name,
@@ -29,10 +31,12 @@ select
     floor(avg(products.price * sales.quantity)) as average_income
 from
     sales
-inner join employees on
-    sales.sales_person_id = employees.employee_id
-inner join products on
-    sales.product_id = products.product_id
+inner join
+    employees
+    on sales.sales_person_id = employees.employee_id
+inner join
+    products
+    on sales.product_id = products.product_id
 group by
     employees.employee_id,
     employees.first_name,
@@ -40,11 +44,12 @@ group by
 having
     floor(avg(products.price * sales.quantity)) < (
         select
-            floor(avg(sales.quantity * products.price))
+            floor(avg(sales_inner.quantity * products_inner.price))
         from
-            sales
-        inner join products on
-            sales.product_id = products.product_id
+            sales as sales_inner
+        inner join
+            products as products_inner
+            on sales_inner.product_id = products_inner.product_id
     )
 order by
     average_income;
@@ -64,10 +69,12 @@ select
     floor(sum(sales.quantity * products.price)) as income
 from
     sales
-inner join employees on
-    sales.sales_person_id = employees.employee_id
-inner join products on
-    sales.product_id = products.product_id
+inner join
+    employees
+    on sales.sales_person_id = employees.employee_id
+inner join
+    products
+    on sales.product_id = products.product_id
 group by
     employees.employee_id,
     employees.first_name,
@@ -107,8 +114,9 @@ select
     floor(sum(sales.quantity * products.price)) as income
 from
     sales
-inner join products on
-    sales.product_id = products.product_id
+inner join
+    products
+    on sales.product_id = products.product_id
 group by
     to_char(sales.sale_date, 'yyyy-mm')
 order by
@@ -133,11 +141,13 @@ first_purchase_details as (
         sales.sales_id
     from
         first_purchases
-    inner join sales on
-        first_purchases.customer_id = sales.customer_id
+    inner join
+        sales
+        on first_purchases.customer_id = sales.customer_id
         and first_purchases.first_sale_date = sales.sale_date
-    inner join products on
-        sales.product_id = products.product_id
+    inner join
+        products
+        on sales.product_id = products.product_id
     where
         products.price = 0
 )
@@ -148,9 +158,11 @@ select
     concat(employees.first_name, ' ', employees.last_name) as seller
 from
     first_purchase_details
-inner join customers on
-    first_purchase_details.customer_id = customers.customer_id
-inner join employees on
-    first_purchase_details.sales_person_id = employees.employee_id
+inner join
+    customers
+    on first_purchase_details.customer_id = customers.customer_id
+inner join
+    employees
+    on first_purchase_details.sales_person_id = employees.employee_id
 order by
     customers.customer_id;

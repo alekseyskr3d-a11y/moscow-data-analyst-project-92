@@ -1,4 +1,3 @@
-
 --общее число покупателей
 select count (*) as customers_count
 from customers c ;
@@ -54,13 +53,13 @@ ORDER BY
     age_category;
 --число покупателей в месяц
 SELECT 
-    TO_CHAR(s.sale_date, 'YYYY-MM') AS date,
+    TO_CHAR(s.sale_date, 'YYYY-MM') AS selling_month,
     COUNT(DISTINCT s.customer_id) AS total_customers,
     FLOOR(SUM(s.quantity * p.price)) AS income
 FROM sales s
 JOIN products p ON s.product_id = p.product_id
 GROUP BY TO_CHAR(s.sale_date, 'YYYY-MM')
-ORDER BY date;
+ORDER BY selling_month;
 --покупатели с первой покупкой по акции
 WITH first_purchases AS (
     SELECT 

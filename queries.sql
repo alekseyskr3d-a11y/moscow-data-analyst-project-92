@@ -33,7 +33,8 @@ GROUP BY
     employees.first_name,
     employees.last_name
 HAVING FLOOR(AVG(products.price * sales.quantity)) < (
-    SELECT FLOOR(AVG(sales_inner.quantity * products_inner.price))
+    SELECT
+        FLOOR(AVG(sales_inner.quantity * products_inner.price))
     FROM sales AS sales_inner
     INNER JOIN products AS products_inner
         ON sales_inner.product_id = products_inner.product_id

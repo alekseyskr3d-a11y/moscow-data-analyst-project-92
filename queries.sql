@@ -20,7 +20,7 @@ having floor(avg(p.price * s.quantity)) <  (
     FROM sales s2
     JOIN products p2 ON s2.product_id = p2.product_id
 )
-order by income;
+order by income desc;
 --выручка по дням недели
 SELECT 
     e.first_name || ' ' || e.last_name AS seller,
@@ -87,5 +87,6 @@ FROM first_purchase_details fpd
 JOIN customers c ON fpd.customer_id = c.customer_id
 JOIN employees e ON fpd.sales_person_id = e.employee_id
 ORDER BY c.customer_id;
+
 
 

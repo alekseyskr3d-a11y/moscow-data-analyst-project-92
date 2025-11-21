@@ -1,168 +1,122 @@
--- общее число покупателей
-select
-    count(*) as customers_count
-from
-    customers;
+--общее число покупателей
 
--- топ 10 продавцов
-select
-    concat(employees.first_name, ' ', employees.last_name) as seller,
-    count(sales.sales_id) as operations,
-    floor(sum(products.price * sales.quantity)) as income
-from
-    sales
-inner join
-    employees
-    on sales.sales_person_id = employees.employee_id
-inner join
-    products
-    on sales.product_id = products.product_id
-group by
-    employees.employee_id,
-    employees.first_name,
-    employees.last_name
-order by
-    income desc
-limit 10;
+SELECT COUNT (*) AS customers_count
+FROM customers c ;
 
--- продавцы с выручкой ниже средней
-select
-    concat(employees.first_name, ' ', employees.last_name) as seller,
-    floor(avg(products.price * sales.quantity)) as average_income
-from
-    sales
-inner join
-    employees
-    on sales.sales_person_id = employees.employee_id
-inner join
-    products
-    on sales.product_id = products.product_id
-group by
-    employees.employee_id,
-    employees.first_name,
-    employees.last_name
-having
-    floor(avg(products.price * sales.quantity)) < (
-        select
-            floor(avg(sales_inner.quantity * products_inner.price))
-        from
-            sales as sales_inner
-        inner join
-            products as products_inner
-            on sales_inner.product_id = products_inner.product_id
-    )
-order by
-    average_income;
+--топ 10 продавцов
 
--- выручка по дням недели
-select
-    employees.first_name || ' ' || employees.last_name as seller,
-    case extract(dow from sales.sale_date)
-        when 0 then 'sunday'
-        when 1 then 'monday'
-        when 2 then 'tuesday'
-        when 3 then 'wednesday'
-        when 4 then 'thursday'
-        when 5 then 'friday'
-        when 6 then 'saturday'
-    end as day_of_week,
-    floor(sum(sales.quantity * products.price)) as income
-from
-    sales
-inner join
-    employees
-    on sales.sales_person_id = employees.employee_id
-inner join
-    products
-    on sales.product_id = products.product_id
-group by
-    employees.employee_id,
-    employees.first_name,
-    employees.last_name,
-    extract(dow from sales.sale_date)
-order by
-    seller,
-    case
-        when day_of_week = 'monday' then 1
-        when day_of_week = 'tuesday' then 2
-        when day_of_week = 'wednesday' then 3
-        when day_of_week = 'thursday' then 4
-        when day_of_week = 'friday' then 5
-        when day_of_week = 'saturday' then 6
-        when day_of_week = 'sunday' then 7
-    end;
+SELECT concat(e.first_name, ' ', e.last_name) AS seller,
+       count(s.sales_id) AS operations,
+       floor(sum(p.price * s.quantity)) AS income
+FROM sales s
+JOIN employees e ON s.sales_person_id = e.employee_id
+JOIN products p ON s.product_id = p.product_id
+GROUP BY e.employee_id,
+         e.first_name,
+         e.last_name
+ORDER BY income DESC
+LIMIT 10;
 
--- покупатели по разным возрастным группам
-select
-    case
-        when age between 16 and 25 then '16-25'
-        when age between 26 and 40 then '26-40'
-        else '40+'
-    end as age_category,
-    count(*) as age_count
-from
-    customers
-group by
-    age_category
-order by
-    age_category;
+--продавцы с выручкой ниже средней
 
--- число покупателей в месяц
-select
-    to_char(sales.sale_date, 'yyyy-mm') as selling_month,
-    count(distinct sales.customer_id) as total_customers,
-    floor(sum(sales.quantity * products.price)) as income
-from
-    sales
-inner join
-    products
-    on sales.product_id = products.product_id
-group by
-    to_char(sales.sale_date, 'yyyy-mm')
-order by
-    selling_month;
+SELECT concat(e.first_name, ' ', e.last_name) AS seller,
+       floor(avg(p.price * s.quantity)) AS average_income
+FROM sales s
+JOIN employees e ON s.sales_person_id = e.employee_id
+JOIN products p ON s.product_id = p.product_id
+GROUP BY e.employee_id,
+         e.first_name,
+         e.last_name
+HAVING floor(avg(p.price * s.quantity)) <
+  (SELECT FLOOR(AVG(s2.quantity * p2.price))
+   FROM sales s2
+   JOIN products p2 ON s2.product_id = p2.product_id)
+ORDER BY average_income ;
 
--- покупатели с первой покупкой по акции
-with first_purchases as (
-    select
-        customer_id,
-        min(sale_date) as first_sale_date
-    from
-        sales
-    group by
-        customer_id
-),
+--выручка по дням недели
 
-first_purchase_details as (
-    select distinct on (first_purchases.customer_id)
-        first_purchases.customer_id,
-        first_purchases.first_sale_date,
-        sales.sales_person_id,
-        sales.sales_id
-    from
-        first_purchases
-    inner join
-        sales
-        on first_purchases.customer_id = sales.customer_id
-        and first_purchases.first_sale_date = sales.sale_date
-    inner join
-        products
-        on sales.product_id = products.product_id
-    where
-        products.price = 0
-)
+SELECT seller,
+       day_of_week,
+       income
+FROM
+  (SELECT e.first_name ' ' e.last_name AS seller,
+                           CASE EXTRACT(DOW
+                                        FROM s.sale_date)
+                               WHEN 0 THEN 'sunday'
+                               WHEN 1 THEN 'monday'
+                               WHEN 2 THEN 'tuesday'
+                               WHEN 3 THEN 'wednesday'
+                               WHEN 4 THEN 'thursday'
+                               WHEN 5 THEN 'friday'
+                               WHEN 6 THEN 'saturday'
+                           END AS day_of_week,
+                           FLOOR(SUM(s.quantity * p.price)) AS income
+   FROM sales s
+   JOIN employees e ON s.sales_person_id = e.employee_id
+   JOIN products p ON s.product_id = p.product_id
+   GROUP BY e.employee_id,
+            e.first_name,
+            e.last_name,
+            EXTRACT(DOW
+                    FROM s.sale_date)) AS subquery
+ORDER BY seller,
+         CASE day_of_week
+             WHEN 'monday' THEN 1
+             WHEN 'tuesday' THEN 2
+             WHEN 'wednesday' THEN 3
+             WHEN 'thursday' THEN 4
+             WHEN 'friday' THEN 5
+             WHEN 'saturday' THEN 6
+             WHEN 'sunday' THEN 7
+         END;
 
-select
-    concat(customers.first_name, ' ', customers.last_name) as customer,
-    first_purchase_details.first_sale_date as sale_date,
-    concat(employees.first_name, ' ', employees.last_name) as seller
-from
-    first_purchase_details
-inner join
-    customers
-    on first_purchase_details.customer_id = customers.customer_id
-inner join
-    employees
-    on first_purchase_details.sales_person_id = employees.employee_id
-order by
-    customers.customer_id;
+--покупатели по разным возраснтым группам
+
+SELECT CASE
+           WHEN age BETWEEN 16 AND 25 THEN '16-25'
+           WHEN age BETWEEN 26 AND 40 THEN '26-40'
+           ELSE '40+'
+       END AS age_category,
+       COUNT(*) AS age_count
+FROM customers
+GROUP BY age_category
+ORDER BY age_category;
+
+--число покупателей в месяц
+
+SELECT TO_CHAR(s.sale_date, 'YYYY-MM') AS selling_month,
+       COUNT(DISTINCT s.customer_id) AS total_customers,
+       FLOOR(SUM(s.quantity * p.price)) AS income
+FROM sales s
+JOIN products p ON s.product_id = p.product_id
+GROUP BY TO_CHAR(s.sale_date, 'YYYY-MM')
+ORDER BY selling_month;
+
+--покупатели с первой покупкой по акции
+
+WITH first_purchases AS
+  (SELECT customer_id,
+          MIN(sale_date) AS first_sale_date
+   FROM sales
+   GROUP BY customer_id),
+     first_purchase_details AS
+  (SELECT DISTINCT ON (fp.customer_id) fp.customer_id,
+                      fp.first_sale_date,
+                      s.sales_person_id,
+                      s.sales_id
+   FROM first_purchases fp
+   JOIN sales s ON fp.customer_id = s.customer_id
+   AND fp.first_sale_date = s.sale_date
+   JOIN products p ON s.product_id = p.product_id
+   WHERE p.price = 0)
+SELECT CONCAT(c.first_name, ' ', c.last_name) AS customer,
+       fpd.first_sale_date AS sale_date,
+       CONCAT(e.first_name, ' ', e.last_name) AS seller
+FROM first_purchase_details fpd
+JOIN customers c ON fpd.customer_id = c.customer_id
+JOIN employees e ON fpd.sales_person_id = e.employee_id
+ORDER BY c.customer_id;
+
+
+
+

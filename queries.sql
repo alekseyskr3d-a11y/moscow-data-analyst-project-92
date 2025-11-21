@@ -154,4 +154,3 @@ FROM (
 ) AS final_results
 ORDER BY
     customer;
-

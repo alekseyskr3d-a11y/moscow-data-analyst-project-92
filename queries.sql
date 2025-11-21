@@ -1,6 +1,5 @@
 -- общее число покупателей
-SELECT
-    COUNT(*) AS customers_count
+SELECT COUNT(*) AS customers_count
 FROM customers;
 
 -- топ 10 продавцов
@@ -36,8 +35,7 @@ GROUP BY
     employees.last_name
 HAVING
     FLOOR(AVG(products.price * sales.quantity)) < (
-        SELECT
-            FLOOR(AVG(sales_inner.quantity * products_inner.price))
+        SELECT FLOOR(AVG(sales_inner.quantity * products_inner.price))
         FROM sales AS sales_inner
         INNER JOIN products AS products_inner
             ON sales_inner.product_id = products_inner.product_id
@@ -123,6 +121,7 @@ WITH first_purchases AS (
         customer_id
 ),
 first_purchase_details AS (
+    
     SELECT DISTINCT ON (first_purchases.customer_id)
         first_purchases.customer_id,
         first_purchases.first_sale_date,
@@ -130,8 +129,8 @@ first_purchase_details AS (
         sales.sales_id
     FROM first_purchases
     INNER JOIN sales
-        ON first_purchases.customer_id = sales.customer_id
-        AND first_purchases.first_sale_date = sales.sale_date
+    ON first_purchases.customer_id = sales.customer_id
+    AND first_purchases.first_sale_date = sales.sale_date
     INNER JOIN products
         ON sales.product_id = products.product_id
     WHERE products.price = 0
@@ -154,3 +153,7 @@ FROM (
 ) AS final_results
 ORDER BY
     customer;
+
+
+
+

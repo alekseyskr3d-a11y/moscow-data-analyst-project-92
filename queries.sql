@@ -120,7 +120,8 @@ first_purchase_details AS (
         first_purchases.first_sale_date,
         sales.sales_person_id,
         sales.sales_id
-    FROM first_purchases
+    FROM
+        first_purchases
     INNER JOIN sales
         ON first_purchases.customer_id = sales.customer_id
         AND first_purchases.first_sale_date = sales.sale_date
@@ -130,12 +131,18 @@ first_purchase_details AS (
 )
 
 SELECT
-    CONCAT(customers.first_name, ' ', customers.last_name) AS customer,
-    first_purchase_details.first_sale_date AS sale_date,
-    CONCAT(employees.first_name, ' ', employees.last_name) AS seller
-FROM first_purchase_details
-INNER JOIN customers
-    ON first_purchase_details.customer_id = customers.customer_id
-INNER JOIN employees
-    ON first_purchase_details.sales_person_id = employees.employee_id
-ORDER BY customers.customer_id;
+    customer,
+    sale_date,
+    seller
+FROM (
+    SELECT
+        CONCAT(customers.first_name, ' ', customers.last_name) AS customer,
+        first_purchase_details.first_sale_date AS sale_date,
+        CONCAT(employees.first_name, ' ', employees.last_name) AS seller
+    FROM first_purchase_details
+    INNER JOIN customers
+        ON first_purchase_details.customer_id = customers.customer_id
+    INNER JOIN employees
+        ON first_purchase_details.sales_person_id = employees.employee_id
+) AS final_results
+ORDER BY customer;

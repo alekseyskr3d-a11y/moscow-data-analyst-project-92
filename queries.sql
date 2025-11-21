@@ -23,22 +23,38 @@ having floor(avg(p.price * s.quantity)) <  (
 order by average_income ;
 --выручка по дням недели
 SELECT 
-    e.first_name || ' ' || e.last_name AS seller,
-    CASE EXTRACT(DOW FROM s.sale_date) 
-        WHEN 0 THEN 'sunday'
-        WHEN 1 THEN 'monday'
-        WHEN 2 THEN 'tuesday'
-        WHEN 3 THEN 'wednesday'
-        WHEN 4 THEN 'thursday'
-        WHEN 5 THEN 'friday'
-        WHEN 6 THEN 'saturday'
-    END AS day_of_week,
-    FLOOR(SUM(s.quantity * p.price)) AS income
-FROM sales s
-JOIN employees e ON s.sales_person_id = e.employee_id
-JOIN products p ON s.product_id = p.product_id
-GROUP BY e.employee_id, e.first_name, e.last_name, EXTRACT(DOW FROM s.sale_date)
-ORDER BY EXTRACT(DOW FROM s.sale_date), seller;
+    seller,
+    day_of_week,
+    income
+FROM (
+    SELECT 
+        e.first_name  ' '  e.last_name AS seller,
+        CASE EXTRACT(DOW FROM s.sale_date) 
+            WHEN 0 THEN 'sunday'
+            WHEN 1 THEN 'monday'
+            WHEN 2 THEN 'tuesday'
+            WHEN 3 THEN 'wednesday'
+            WHEN 4 THEN 'thursday'
+            WHEN 5 THEN 'friday'
+            WHEN 6 THEN 'saturday'
+        END AS day_of_week,
+        FLOOR(SUM(s.quantity * p.price)) AS income
+    FROM sales s
+    JOIN employees e ON s.sales_person_id = e.employee_id
+    JOIN products p ON s.product_id = p.product_id
+    GROUP BY e.employee_id, e.first_name, e.last_name, EXTRACT(DOW FROM s.sale_date)
+) AS subquery
+ORDER BY 
+    seller,
+    CASE day_of_week
+        WHEN 'monday' THEN 1
+        WHEN 'tuesday' THEN 2
+        WHEN 'wednesday' THEN 3
+        WHEN 'thursday' THEN 4
+        WHEN 'friday' THEN 5
+        WHEN 'saturday' THEN 6
+        WHEN 'sunday' THEN 7
+    END;
 --покупатели по разным возраснтым группам
 SELECT 
     CASE 
@@ -87,6 +103,7 @@ FROM first_purchase_details fpd
 JOIN customers c ON fpd.customer_id = c.customer_id
 JOIN employees e ON fpd.sales_person_id = e.employee_id
 ORDER BY c.customer_id;
+
 
 
 

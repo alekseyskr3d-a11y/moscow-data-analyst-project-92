@@ -143,8 +143,7 @@ SELECT
     seller
 FROM (
     SELECT
-        first_purchase_details.
-    first_sale_date AS sale_date,
+        first_purchase_details.first_sale_date AS sale_date,
         CONCAT(customers.first_name, ' ', customers.last_name) AS customer,
         CONCAT(employees.first_name, ' ', employees.last_name) AS seller
     FROM first_purchase_details

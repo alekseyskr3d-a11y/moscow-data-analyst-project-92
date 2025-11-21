@@ -1,8 +1,9 @@
---общее число покупателей
-SELECT COUNT(*) AS customers_count
+-- общее число покупателей
+SELECT
+    COUNT(*) AS customers_count
 FROM customers;
 
---топ 10 продавцов
+-- топ 10 продавцов
 SELECT
     CONCAT(employees.first_name, ' ', employees.last_name) AS seller,
     COUNT(sales.sales_id) AS operations,
@@ -16,10 +17,11 @@ GROUP BY
     employees.employee_id,
     employees.first_name,
     employees.last_name
-ORDER BY income DESC
+ORDER BY
+    income DESC
 LIMIT 10;
 
---продавцы с выручкой ниже средней
+-- продавцы с выручкой ниже средней
 SELECT
     CONCAT(employees.first_name, ' ', employees.last_name) AS seller,
     FLOOR(AVG(products.price * sales.quantity)) AS average_income
@@ -32,16 +34,18 @@ GROUP BY
     employees.employee_id,
     employees.first_name,
     employees.last_name
-HAVING FLOOR(AVG(products.price * sales.quantity)) < (
-    SELECT
-        FLOOR(AVG(sales_inner.quantity * products_inner.price))
-    FROM sales AS sales_inner
-    INNER JOIN products AS products_inner
-        ON sales_inner.product_id = products_inner.product_id
-)
-ORDER BY average_income;
+HAVING
+    FLOOR(AVG(products.price * sales.quantity)) < (
+        SELECT
+            FLOOR(AVG(sales_inner.quantity * products_inner.price))
+        FROM sales AS sales_inner
+        INNER JOIN products AS products_inner
+            ON sales_inner.product_id = products_inner.product_id
+    )
+ORDER BY
+    average_income;
 
---выручка по дням недели
+-- выручка по дням недели
 SELECT
     seller,
     day_of_week,
@@ -82,7 +86,7 @@ ORDER BY
         WHEN 'sunday' THEN 7
     END;
 
---покупатели по разным возраснтым группам
+-- покупатели по разным возрастным группам
 SELECT
     CASE
         WHEN age BETWEEN 16 AND 25 THEN '16-25'
@@ -91,10 +95,12 @@ SELECT
     END AS age_category,
     COUNT(*) AS age_count
 FROM customers
-GROUP BY age_category
-ORDER BY age_category;
+GROUP BY
+    age_category
+ORDER BY
+    age_category;
 
---число покупателей в месяц
+-- число покупателей в месяц
 SELECT
     TO_CHAR(sales.sale_date, 'YYYY-MM') AS selling_month,
     COUNT(DISTINCT sales.customer_id) AS total_customers,
@@ -102,41 +108,48 @@ SELECT
 FROM sales
 INNER JOIN products
     ON sales.product_id = products.product_id
-GROUP BY TO_CHAR(sales.sale_date, 'YYYY-MM')
-ORDER BY selling_month;
+GROUP BY
+    TO_CHAR(sales.sale_date, 'YYYY-MM')
+ORDER BY
+    selling_month;
 
---покупатели с первой покупкой по акции
+-- покупатели с первой покупкой по акции
 WITH first_purchases AS (
     SELECT
         customer_id,
         MIN(sale_date) AS first_sale_date
     FROM sales
-    GROUP BY customer_id
+    GROUP BY
+        customer_id
 ),
-
-first_purchase_details AS (
-    SELECT DISTINCT ON (first_purchases.customer_id)
-        first_purchases.customer_id,
-        first_purchases.first_sale_date,
-        sales.sales_person_id,
-        sales.sales_id
-    FROM
-        first_purchases
-    INNER JOIN sales
-        ON first_purchases.customer_id = sales.customer_id
-        AND first_purchases.first_sale_date = sales.sale_date
-    INNER JOIN products
-        ON sales.product_id = products.product_id
-    WHERE products.price = 0
-)
-
+     first_purchase_details AS (
+         SELECT DISTINCT ON (first_purchases.customer_id)
+             first_purchases.customer_id,
+             first_purchases.first_sale_date,
+             sales.sales_person_id,
+             sales.sales_id
+         FROM first_purchases
+         INNER JOIN sales
+             ON first_purchases.customer_id = sales.customer_id
+             AND first_purchases.first_sale_date = sales.sale_date
+         INNER JOIN products
+             ON sales.product_id = products.product_id
+         WHERE products.price = 0
+     )
 SELECT
+    customer,
+    sale_date,
+    seller
+FROM (
+    SELECT
+        first_purchase_details.first_sale_date AS sale_date,
     CONCAT(customers.first_name, ' ', customers.last_name) AS customer,
-    first_purchase_details.first_sale_date AS sale_date,
-    CONCAT(employees.first_name, ' ', employees.last_name) AS seller
-FROM first_purchase_details
-INNER JOIN customers
-    ON first_purchase_details.customer_id = customers.customer_id
-INNER JOIN employees
-    ON first_purchase_details.sales_person_id = employees.employee_id
-ORDER BY customers.customer_id;
+        CONCAT(employees.first_name, ' ', employees.last_name) AS seller
+    FROM first_purchase_details
+    INNER JOIN customers
+        ON first_purchase_details.customer_id = customers.customer_id
+    INNER JOIN employees
+        ON first_purchase_details.sales_person_id = employees.employee_id
+) AS final_results
+ORDER BY
+    customer;

@@ -11,7 +11,7 @@ group by e.employee_id , e.first_name , e.last_name
 order by income desc 
 limit 10;
 --продавцы с выручкой ниже средней
-select concat(e.first_name , ' ', e.last_name ) as seller, floor(avg(p.price * s.quantity)) as income
+select concat(e.first_name , ' ', e.last_name ) as seller, floor(avg(p.price * s.quantity)) as average_income 
 from  sales s 
 JOIN employees e ON s.sales_person_id = e.employee_id
 JOIN products p ON s.product_id = p.product_id
@@ -21,18 +21,18 @@ having floor(avg(p.price * s.quantity)) <  (
     FROM sales s2
     JOIN products p2 ON s2.product_id = p2.product_id
 )
-order by income desc ;
+order by average_income;
 --выручка по дням недели
 SELECT 
     e.first_name || ' ' || e.last_name AS seller,
     CASE EXTRACT(DOW FROM s.sale_date) 
-        WHEN 0 THEN 'sunday'
-        WHEN 1 THEN 'monday'
-        WHEN 2 THEN 'tuesday'
-        WHEN 3 THEN 'wednesday'
-        WHEN 4 THEN 'thursday'
-        WHEN 5 THEN 'friday'
-        WHEN 6 THEN 'saturday'
+        WHEN 6 THEN 'sunday'
+        WHEN 0 THEN 'monday'
+        WHEN 1 THEN 'tuesday'
+        WHEN 2 THEN 'wednesday'
+        WHEN 3 THEN 'thursday'
+        WHEN 4 THEN 'friday'
+        WHEN 5 THEN 'saturday'
     END AS day_of_week,
     FLOOR(SUM(s.quantity * p.price)) AS income
 FROM sales s
@@ -88,3 +88,4 @@ FROM first_purchase_details fpd
 JOIN customers c ON fpd.customer_id = c.customer_id
 JOIN employees e ON fpd.sales_person_id = e.employee_id
 ORDER BY c.customer_id;
+

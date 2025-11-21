@@ -53,14 +53,14 @@ SELECT
 FROM (
     SELECT
         employees.first_name || ' ' || employees.last_name AS seller,
-        CASE EXTRACT(DOW FROM sales.sale_date)
-            WHEN 0 THEN 'sunday'
-            WHEN 1 THEN 'monday'
-            WHEN 2 THEN 'tuesday'
-            WHEN 3 THEN 'wednesday'
-            WHEN 4 THEN 'thursday'
-            WHEN 5 THEN 'friday'
-            WHEN 6 THEN 'saturday'
+        CASE
+            WHEN EXTRACT(DOW FROM sales.sale_date) = 0 THEN 'sunday'
+            WHEN EXTRACT(DOW FROM sales.sale_date) = 1 THEN 'monday'
+            WHEN EXTRACT(DOW FROM sales.sale_date) = 2 THEN 'tuesday'
+            WHEN EXTRACT(DOW FROM sales.sale_date) = 3 THEN 'wednesday'
+            WHEN EXTRACT(DOW FROM sales.sale_date) = 4 THEN 'thursday'
+            WHEN EXTRACT(DOW FROM sales.sale_date) = 5 THEN 'friday'
+            WHEN EXTRACT(DOW FROM sales.sale_date) = 6 THEN 'saturday'
         END AS day_of_week,
         FLOOR(SUM(sales.quantity * products.price)) AS income
     FROM sales
@@ -122,28 +122,30 @@ WITH first_purchases AS (
     GROUP BY
         customer_id
 ),
-     first_purchase_details AS (
-         SELECT DISTINCT ON (first_purchases.customer_id)
-             first_purchases.customer_id,
-             first_purchases.first_sale_date,
-             sales.sales_person_id,
-             sales.sales_id
-         FROM first_purchases
-         INNER JOIN sales
-             ON first_purchases.customer_id = sales.customer_id
-             AND first_purchases.first_sale_date = sales.sale_date
-         INNER JOIN products
-             ON sales.product_id = products.product_id
-         WHERE products.price = 0
-     )
+first_purchase_details AS (
+    SELECT DISTINCT ON (first_purchases.customer_id)
+        first_purchases.customer_id,
+        first_purchases.first_sale_date,
+        sales.sales_person_id,
+        sales.sales_id
+    FROM first_purchases
+    INNER JOIN sales
+        ON first_purchases.customer_id = sales.customer_id
+        AND first_purchases.first_sale_date = sales.sale_date
+    INNER JOIN products
+        ON sales.product_id = products.product_id
+    WHERE products.price = 0
+)
+
 SELECT
     customer,
     sale_date,
     seller
 FROM (
     SELECT
-        first_purchase_details.first_sale_date AS sale_date,
-    CONCAT(customers.first_name, ' ', customers.last_name) AS customer,
+        first_purchase_details.
+    first_sale_date AS sale_date,
+        CONCAT(customers.first_name, ' ', customers.last_name) AS customer,
         CONCAT(employees.first_name, ' ', employees.last_name) AS seller
     FROM first_purchase_details
     INNER JOIN customers

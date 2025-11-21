@@ -121,7 +121,6 @@ WITH first_purchases AS (
         customer_id
 ),
 first_purchase_details AS (
-    
     SELECT DISTINCT ON (first_purchases.customer_id)
         first_purchases.customer_id,
         first_purchases.first_sale_date,
@@ -153,7 +152,3 @@ FROM (
 ) AS final_results
 ORDER BY
     customer;
-
-
-
-

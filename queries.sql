@@ -1,47 +1,58 @@
 -- общее число покупателей
 select
     count(*) as customers_count
-from customers;
+from
+    customers;
 
 -- топ 10 продавцов
 select
-    concat(e.first_name, ' ', e.last_name) as seller,
-    count(s.sales_id) as operations,
-    floor(sum(p.price * s.quantity)) as income
-from sales s
-join employees e on s.sales_person_id = e.employee_id
-join products p on s.product_id = p.product_id
+    concat(employees.first_name, ' ', employees.last_name) as seller,
+    count(sales.sales_id) as operations,
+    floor(sum(products.price * sales.quantity)) as income
+from
+    sales
+inner join employees on
+    sales.sales_person_id = employees.employee_id
+inner join products on
+    sales.product_id = products.product_id
 group by
-    e.employee_id,
-    e.first_name,
-    e.last_name
-order by income desc
+    employees.employee_id,
+    employees.first_name,
+    employees.last_name
+order by
+    income desc
 limit 10;
 
 -- продавцы с выручкой ниже средней
 select
-    concat(e.first_name, ' ', e.last_name) as seller,
-    floor(avg(p.price * s.quantity)) as average_income
-from sales s
-join employees e on s.sales_person_id = e.employee_id
-join products p on s.product_id = p.product_id
+    concat(employees.first_name, ' ', employees.last_name) as seller,
+    floor(avg(products.price * sales.quantity)) as average_income
+from
+    sales
+inner join employees on
+    sales.sales_person_id = employees.employee_id
+inner join products on
+    sales.product_id = products.product_id
 group by
-    e.employee_id,
-    e.first_name,
-    e.last_name
+    employees.employee_id,
+    employees.first_name,
+    employees.last_name
 having
-    floor(avg(p.price * s.quantity)) < (
+    floor(avg(products.price * sales.quantity)) < (
         select
-            floor(avg(s2.quantity * p2.price))
-        from sales s2
-        join products p2 on s2.product_id = p2.product_id
+            floor(avg(sales.quantity * products.price))
+        from
+            sales
+        inner join products on
+            sales.product_id = products.product_id
     )
-order by average_income;
+order by
+    average_income;
 
 -- выручка по дням недели
 select
-    e.first_name || ' ' || e.last_name as seller,
-    case extract(dow from s.sale_date)
+    employees.first_name || ' ' || employees.last_name as seller,
+    case extract(dow from sales.sale_date)
         when 0 then 'sunday'
         when 1 then 'monday'
         when 2 then 'tuesday'
@@ -50,15 +61,18 @@ select
         when 5 then 'friday'
         when 6 then 'saturday'
     end as day_of_week,
-    floor(sum(s.quantity * p.price)) as income
-from sales s
-join employees e on s.sales_person_id = e.employee_id
-join products p on s.product_id = p.product_id
+    floor(sum(sales.quantity * products.price)) as income
+from
+    sales
+inner join employees on
+    sales.sales_person_id = employees.employee_id
+inner join products on
+    sales.product_id = products.product_id
 group by
-    e.employee_id,
-    e.first_name,
-    e.last_name,
-    extract(dow from s.sale_date)
+    employees.employee_id,
+    employees.first_name,
+    employees.last_name,
+    extract(dow from sales.sale_date)
 order by
     seller,
     case
@@ -79,46 +93,64 @@ select
         else '40+'
     end as age_category,
     count(*) as age_count
-from customers
-group by age_category
-order by age_category;
+from
+    customers
+group by
+    age_category
+order by
+    age_category;
 
 -- число покупателей в месяц
 select
-    to_char(s.sale_date, 'yyyy-mm') as selling_month,
-    count(distinct s.customer_id) as total_customers,
-    floor(sum(s.quantity * p.price)) as income
-from sales s
-join products p on s.product_id = p.product_id
-group by to_char(s.sale_date, 'yyyy-mm')
-order by selling_month;
+    to_char(sales.sale_date, 'yyyy-mm') as selling_month,
+    count(distinct sales.customer_id) as total_customers,
+    floor(sum(sales.quantity * products.price)) as income
+from
+    sales
+inner join products on
+    sales.product_id = products.product_id
+group by
+    to_char(sales.sale_date, 'yyyy-mm')
+order by
+    selling_month;
 
 -- покупатели с первой покупкой по акции
 with first_purchases as (
     select
         customer_id,
         min(sale_date) as first_sale_date
-    from sales
-    group by customer_id
+    from
+        sales
+    group by
+        customer_id
 ),
+
 first_purchase_details as (
-    select distinct on (fp.customer_id)
-        fp.customer_id,
-        fp.first_sale_date,
-        s.sales_person_id,
-        s.sales_id
-    from first_purchases fp
-    join sales s
-        on fp.customer_id = s.customer_id
-        and fp.first_sale_date = s.sale_date
-    join products p on s.product_id = p.product_id
-    where p.price = 0
+    select distinct on (first_purchases.customer_id)
+        first_purchases.customer_id,
+        first_purchases.first_sale_date,
+        sales.sales_person_id,
+        sales.sales_id
+    from
+        first_purchases
+    inner join sales on
+        first_purchases.customer_id = sales.customer_id
+        and first_purchases.first_sale_date = sales.sale_date
+    inner join products on
+        sales.product_id = products.product_id
+    where
+        products.price = 0
 )
+
 select
-    concat(c.first_name, ' ', c.last_name) as customer,
-    fpd.first_sale_date as sale_date,
-    concat(e.first_name, ' ', e.last_name) as seller
-from first_purchase_details fpd
-join customers c on fpd.customer_id = c.customer_id
-join employees e on fpd.sales_person_id = e.employee_id
-order by c.customer_id;
+    concat(customers.first_name, ' ', customers.last_name) as customer,
+    first_purchase_details.first_sale_date as sale_date,
+    concat(employees.first_name, ' ', employees.last_name) as seller
+from
+    first_purchase_details
+inner join customers on
+    first_purchase_details.customer_id = customers.customer_id
+inner join employees on
+    first_purchase_details.sales_person_id = employees.employee_id
+order by
+    customers.customer_id;

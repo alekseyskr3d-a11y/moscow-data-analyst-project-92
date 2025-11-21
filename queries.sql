@@ -131,7 +131,7 @@ first_purchase_details AS (
     INNER JOIN sales
         ON
             first_purchases.customer_id = sales.customer_id
-        AND 
+            AND 
             first_purchases.first_sale_date = sales.sale_date
     INNER JOIN products
         ON sales.product_id = products.product_id

@@ -114,7 +114,7 @@ ORDER BY
 -- покупатели с первой покупкой по акции
 SELECT DISTINCT ON (customers.customer_id)
     CONCAT(customers.first_name, ' ', customers.last_name) AS customer,
-    first_purchase_details.first_sale_date AS sale_date,
+    sales.sale_date,
     CONCAT(employees.first_name, ' ', employees.last_name) AS seller
 FROM customers
 CROSS JOIN LATERAL (
@@ -132,4 +132,5 @@ INNER JOIN employees
 WHERE products.price = 0
 ORDER BY 
     customers.customer_id;
+
 

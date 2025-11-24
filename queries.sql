@@ -124,7 +124,7 @@ CROSS JOIN
         FROM sales
         WHERE sales.customer_id = customers.customer_id
     ) AS first_sale
-INNER JOIN sales as s
+INNER JOIN sales AS s
     ON
         customers.customer_id = s.customer_id
         AND first_sale.first_sale_date = s.sale_date
@@ -135,3 +135,4 @@ INNER JOIN employees
 WHERE products.price = 0
 ORDER BY
     customers.customer_id;
+

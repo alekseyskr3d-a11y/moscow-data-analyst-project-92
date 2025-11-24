@@ -123,12 +123,13 @@ CROSS JOIN LATERAL (
     WHERE customer_id = customers.customer_id
 ) first_sale
 INNER JOIN sales 
-    ON s.customer_id = customers.customer_id 
-    AND s.sale_date = first_sale.first_sale_date
+    ON sales.customer_id = customers.customer_id 
+    AND sales.sale_date = first_sale.first_sale_date
 INNER JOIN products 
-    ON s.product_id = products.product_id
+    ON sales.product_id = products.product_id
 INNER JOIN employees 
-    ON s.sales_person_id = employees.employee_id
+    ON sales.sales_person_id = employees.employee_id
 WHERE products.price = 0
 ORDER BY 
     customers.customer_id;
+

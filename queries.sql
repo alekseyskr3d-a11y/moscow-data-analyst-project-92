@@ -112,27 +112,30 @@ ORDER BY
     selling_month;
 
 -- покупатели с первой покупкой по акции
-SELECT DISTINCT 
-    ON (customers.customer_id)
-    CONCAT(customers.first_name, ' ', customers.last_name) AS customer,
+SELECT DISTINCT
+ON (customers.customer_id)
     sales.sale_date,
+    CONCAT(customers.first_name, ' ', customers.last_name) AS customer,
     CONCAT(employees.first_name, ' ', employees.last_name) AS seller
 FROM customers
-    CROSS JOIN LATERAL (
-        SELECT MIN(sale_date) AS first_sale_date
+CROSS JOIN
+    LATERAL (
+        SELECT MIN(sales.sale_date) AS first_sale_date
         FROM sales
-        WHERE customer_id = customers.customer_id
+        WHERE sales.customer_id = customers.customer_id
     ) AS first_sale
-    INNER JOIN sales
-        ON sales.customer_id = customers.customer_id
-        AND sales.sale_date = first_sale.first_sale_date
-    INNER JOIN products
-        ON sales.product_id = products.product_id
-    INNER JOIN employees
-        ON sales.sales_person_id = employees.employee_id
+INNER JOIN sales
+    ON
+        customers.customer_id = sales.customer_id
+        AND first_sale.first_sale_date = sales.sale_date
+INNER JOIN products
+    ON sales.product_id = products.product_id
+INNER JOIN employees
+    ON sales.sales_person_id = employees.employee_id
 WHERE products.price = 0
 ORDER BY
     customers.customer_id;
+
 
 
 

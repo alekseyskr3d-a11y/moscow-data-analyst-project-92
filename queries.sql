@@ -112,7 +112,8 @@ ORDER BY
     selling_month;
 
 -- покупатели с первой покупкой по акции
-SELECT DISTINCT ON (customers.customer_id)
+SELECT 
+    DISTINCT ON (customers.customer_id)
     CONCAT(customers.first_name, ' ', customers.last_name) AS customer,
     sales.sale_date,
     CONCAT(employees.first_name, ' ', employees.last_name) AS seller
@@ -132,4 +133,5 @@ FROM customers
 WHERE products.price = 0
 ORDER BY
     customers.customer_id;
+
 

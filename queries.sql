@@ -132,5 +132,3 @@ INNER JOIN employees
 WHERE products.price = 0
 ORDER BY 
     customers.customer_id;
-
-

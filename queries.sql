@@ -121,10 +121,10 @@ FROM customers
 CROSS JOIN
     LATERAL (
         SELECT MIN(sales.sale_date) AS first_sale_date
-        FROM sales
+        FROM sales s2
         WHERE sales.customer_id = customers.customer_id
     ) AS first_sale
-INNER JOIN sales
+INNER JOIN sales s
     ON
         customers.customer_id = sales.customer_id
         AND first_sale.first_sale_date = sales.sale_date

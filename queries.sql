@@ -117,18 +117,19 @@ SELECT DISTINCT ON (customers.customer_id)
     sales.sale_date,
     CONCAT(employees.first_name, ' ', employees.last_name) AS seller
 FROM customers
-CROSS JOIN LATERAL (
-    SELECT MIN(sale_date) as first_sale_date
-    FROM sales
-    WHERE customer_id = customers.customer_id
-) first_sale
-INNER JOIN sales 
-    ON sales.customer_id = customers.customer_id 
-    AND sales.sale_date = first_sale.first_sale_date
-INNER JOIN products 
-    ON sales.product_id = products.product_id
-INNER JOIN employees 
-    ON sales.sales_person_id = employees.employee_id
+    CROSS JOIN LATERAL (
+        SELECT MIN(sale_date) AS first_sale_date
+        FROM sales
+        WHERE customer_id = customers.customer_id
+    ) AS first_sale
+    INNER JOIN sales
+        ON sales.customer_id = customers.customer_id
+        AND sales.sale_date = first_sale.first_sale_date
+    INNER JOIN products
+        ON sales.product_id = products.product_id
+    INNER JOIN employees
+        ON sales.sales_person_id = employees.employee_id
 WHERE products.price = 0
-ORDER BY 
+ORDER BY
     customers.customer_id;
+

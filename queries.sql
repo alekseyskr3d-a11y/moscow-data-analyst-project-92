@@ -51,15 +51,15 @@ SELECT
 FROM (
     SELECT
         employees.first_name || ' ' || employees.last_name AS seller,
-        CASE
-            WHEN EXTRACT(DOW FROM sales.sale_date) = 0 THEN 'sunday'
-            WHEN EXTRACT(DOW FROM sales.sale_date) = 1 THEN 'monday'
-            WHEN EXTRACT(DOW FROM sales.sale_date) = 2 THEN 'tuesday'
-            WHEN EXTRACT(DOW FROM sales.sale_date) = 3 THEN 'wednesday'
-            WHEN EXTRACT(DOW FROM sales.sale_date) = 4 THEN 'thursday'
-            WHEN EXTRACT(DOW FROM sales.sale_date) = 5 THEN 'friday'
-            WHEN EXTRACT(DOW FROM sales.sale_date) = 6 THEN 'saturday'
-        END AS day_of_week,
+        CASE day_of_week
+            WHEN 'monday' THEN 1
+            WHEN 'tuesday' THEN 2
+            WHEN 'wednesday' THEN 3
+            WHEN 'thursday' THEN 4
+            WHEN 'friday' THEN 5
+            WHEN 'saturday' THEN 6
+            WHEN 'sunday' THEN 7
+    END AS day_of_week,
         FLOOR(SUM(sales.quantity * products.price)) AS income
     FROM sales
     INNER JOIN employees
@@ -135,3 +135,4 @@ INNER JOIN employees
 WHERE products.price = 0
 ORDER BY
     customers.customer_id;
+

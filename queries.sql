@@ -59,7 +59,7 @@ FROM (
             WHEN 'friday' THEN 5
             WHEN 'saturday' THEN 6
             WHEN 'sunday' THEN 7
-    END AS day_of_week,
+        END AS day_of_week,
         FLOOR(SUM(sales.quantity * products.price)) AS income
     FROM sales
     INNER JOIN employees

@@ -51,16 +51,9 @@ SELECT
 FROM (
     SELECT
         employees.first_name || ' ' || employees.last_name AS seller,
-        CASE
-            WHEN EXTRACT(ISODOW FROM sales.sale_date) = 1 THEN 'monday'
-            WHEN EXTRACT(ISODOW FROM sales.sale_date) = 2 THEN 'tuesday'
-            WHEN EXTRACT(ISODOW FROM sales.sale_date) = 3 THEN 'wednesday'
-            WHEN EXTRACT(ISODOW FROM sales.sale_date) = 4 THEN 'thursday'
-            WHEN EXTRACT(ISODOW FROM sales.sale_date) = 5 THEN 'friday'
-            WHEN EXTRACT(ISODOW FROM sales.sale_date) = 6 THEN 'saturday'
-            WHEN EXTRACT(ISODOW FROM sales.sale_date) = 7 THEN 'sunday'
-        END AS day_of_week,
-        FLOOR(SUM(sales.quantity * products.price)) AS income
+        LOWER(TO_CHAR(sales.sale_date, 'day')) AS day_of_week,
+        FLOOR(SUM(sales.quantity * products.price)) AS income,
+        EXTRACT(ISODOW FROM sales.sale_date) AS day_num
     FROM sales
     INNER JOIN employees
         ON sales.sales_person_id = employees.employee_id
@@ -70,19 +63,12 @@ FROM (
         employees.employee_id,
         employees.first_name,
         employees.last_name,
-        EXTRACT(DOW FROM sales.sale_date)
+        EXTRACT(ISODOW FROM sales.sale_date),
+        TO_CHAR(sales.sale_date, 'day')
 ) AS subquery
 ORDER BY
-    seller,
-    CASE day_of_week
-        WHEN 'monday' THEN 1
-        WHEN 'tuesday' THEN 2
-        WHEN 'wednesday' THEN 3
-        WHEN 'thursday' THEN 4
-        WHEN 'friday' THEN 5
-        WHEN 'saturday' THEN 6
-        WHEN 'sunday' THEN 7
-    END;
+    day_num,
+    seller;
 
 -- покупатели по разным возрастным группам
 SELECT
@@ -135,3 +121,4 @@ INNER JOIN employees
 WHERE products.price = 0
 ORDER BY
     customers.customer_id;
+
